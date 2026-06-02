@@ -11,7 +11,7 @@ Conteúdo da Disciplina: **D&C**<br>
 | 23/1034082 | ARTUR HANDOW KRAUSPENHAR |
 | 21/1031593 | ANDRE LOPES DE SOUSA     |
 
-**Apresentação:** [Link para o vídeo](...)
+**Apresentação:** [Link para o vídeo](https://youtu.be/arGpFwc9GaY)
 
 ## Sobre
 
