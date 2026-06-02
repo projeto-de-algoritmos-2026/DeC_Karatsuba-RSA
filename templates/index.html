@@ -1,0 +1,186 @@
+Teste a IA diretamente nos seus apps favoritos … Use o Gemini para criar rascunhos e editar conteúdo e acesse o Gemini Pro com a IA de última geração do Google
+index.html
+1
+100%
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Karatsuba vs Ingênuo</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Multiplicação: Karatsuba vs Ingênuo</h1>
+      <p class="subtitle">Algoritmo Dividir para Conquistar — comparação de desempenho</p>
+
+      <div class="input-section">
+        <div class="input-group">
+          <label for="num1">Número A</label>
+          <input type="text" id="num1" placeholder="Ex: 999983 (primo)" />
+        </div>
+        <div class="multiply-sign">×</div>
+        <div class="input-group">
+          <label for="num2">Número B</label>
+          <input type="text" id="num2" placeholder="Ex: 999979 (primo)" />
+        </div>
+      </div>
+
+      <div class="preset-section">
+        <span>Exemplos rápidos:</span>
+        <button class="preset-btn" onclick="setPreset('small')">Pequeno (6 dígitos)</button>
+        <button class="preset-btn" onclick="setPreset('medium')">Médio (12 dígitos)</button>
+        <button class="preset-btn" onclick="setPreset('large')">Grande (24 dígitos)</button>
+        <button class="preset-btn" onclick="setPreset('huge')">Enorme (48 dígitos)</button>
+        <button class="preset-btn preset-btn-rsa" onclick="setPreset('rsa2048')">RSA-2048 (617 dígitos)</button>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn-karatsuba" onclick="calculate('karatsuba')">Calcular com Karatsuba</button>
+        <button class="btn btn-naive" onclick="calculate('naive')">Calcular Ingênuo (O(n²))</button>
+        <button class="btn btn-both" onclick="calculateBoth()">Comparar Ambos</button>
+      </div>
+
+      <div id="results" class="results hidden">
+        <div id="karatsuba-result" class="result-card karatsuba-card hidden">
+          <div class="method-header">
+            <span class="method-name">Karatsuba</span>
+            <span class="complexity">O(n^1.585)</span>
+          </div>
+          <div class="time-display">
+            <span class="time-label">Tempo:</span>
+            <span id="karatsuba-time" class="time-value">—</span>
+            <span class="time-unit">ms</span>
+          </div>
+          <div class="result-value">
+            <span class="result-label">Resultado:</span>
+            <span id="karatsuba-value" class="result-number">—</span>
+          </div>
+        </div>
+
+        <div id="naive-result" class="result-card naive-card hidden">
+          <div class="method-header">
+            <span class="method-name">Ingênuo</span>
+            <span class="complexity">O(n²)</span>
+          </div>
+          <div class="time-display">
+            <span class="time-label">Tempo:</span>
+            <span id="naive-time" class="time-value">—</span>
+            <span class="time-unit">ms</span>
+          </div>
+          <div class="result-value">
+            <span class="result-label">Resultado:</span>
+            <span id="naive-value" class="result-number">—</span>
+          </div>
+        </div>
+
+        <div id="comparison" class="comparison-card hidden">
+          <span id="comparison-text"></span>
+        </div>
+
+        <div id="match-check" class="match-card hidden">
+          <span id="match-text"></span>
+        </div>
+      </div>
+
+      <div id="error-msg" class="error hidden"></div>
+    </div>
+
+    <div class="info-container">
+      <div class="info-section">
+        <h2>Contexto: Geração de Chaves RSA</h2>
+        <p>
+          RSA é um algoritmo de criptografia assimétrica usado em HTTPS, SSH e assinaturas digitais.
+          Sua segurança se baseia na dificuldade de fatorar números muito grandes.
+        </p>
+
+        <div class="rsa-steps">
+          <div class="rsa-step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Escolher dois primos grandes p e q</strong>
+              <span class="step-desc">tipicamente 512 a 2048 bits cada</span>
+            </div>
+          </div>
+          <div class="rsa-step highlight-step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>Calcular n = p × q</strong>
+              <span class="step-desc">módulo público da chave — <em>esta é a etapa demonstrada</em></span>
+            </div>
+          </div>
+          <div class="rsa-step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>Calcular φ(n) = (p − 1) × (q − 1)</strong>
+              <span class="step-desc">função totiente de Euler</span>
+            </div>
+          </div>
+          <div class="rsa-step">
+            <span class="step-num">4</span>
+            <div>
+              <strong>Escolher e tal que mdc(e, φ(n)) = 1</strong>
+              <span class="step-desc">expoente público da chave</span>
+            </div>
+          </div>
+          <div class="rsa-step">
+            <span class="step-num">5</span>
+            <div>
+              <strong>Calcular d tal que d × e ≡ 1 (mod φ(n))</strong>
+              <span class="step-desc">expoente privado da chave</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="key-display">
+          <div class="key-box">
+            <span class="key-label">Chave Pública</span>
+            <span class="key-value">(e, n)</span>
+          </div>
+          <div class="key-box">
+            <span class="key-label">Chave Privada</span>
+            <span class="key-value">(d, n)</span>
+          </div>
+        </div>
+
+        <div class="scope-note">
+          <strong>Escopo desta demonstração:</strong> foco exclusivo na multiplicação <code>n = p × q</code>,
+          comparando Karatsuba com o método ingênuo. Criptografia e descriptografia (exponenciação modular)
+          estão fora do escopo.
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Como funciona o Karatsuba</h2>
+        <p>
+          Dado dois números x e y com n dígitos, divide cada um em duas metades de m = n/2 dígitos:
+        </p>
+        <div class="algo-block">
+          <div class="algo-line"><span class="algo-var">x</span> = high_x × 10<sup>m</sup> + low_x</div>
+          <div class="algo-line"><span class="algo-var">y</span> = high_y × 10<sup>m</sup> + low_y</div>
+        </div>
+        <p>Multiplicação ingênua precisaria de 4 multiplicações recursivas. Karatsuba usa só 3:</p>
+        <div class="algo-block">
+          <div class="algo-line"><span class="algo-var">z0</span> = karatsuba(low_x, low_y)</div>
+          <div class="algo-line"><span class="algo-var">z2</span> = karatsuba(high_x, high_y)</div>
+          <div class="algo-line"><span class="algo-var">z1</span> = karatsuba(low_x + high_x, low_y + high_y) − z2 − z0</div>
+          <div class="algo-line algo-result"><span class="algo-var">resultado</span> = z2 × 10<sup>2m</sup> + z1 × 10<sup>m</sup> + z0</div>
+        </div>
+        <div class="complexity-compare">
+          <div class="complexity-item naive-complexity">
+            <span class="c-label">Ingênuo</span>
+            <span class="c-value">O(n²)</span>
+          </div>
+          <div class="complexity-arrow">→</div>
+          <div class="complexity-item karatsuba-complexity">
+            <span class="c-label">Karatsuba</span>
+            <span class="c-value">O(n<sup>1.585</sup>)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
